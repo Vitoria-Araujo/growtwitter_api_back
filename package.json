@@ -2,16 +2,13 @@
   "name": "growtwitter_api",
   "version": "1.0.0",
   "main": "dist/index.js",
+
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "ts-node-dev --respawn --transpile-only src/index.ts"
+    "postinstall": "prisma generate"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
@@ -20,9 +17,9 @@
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.9.3"
   },
+
   "dependencies": {
     "@prisma/client": "^5.10.2",
-    "@types/bcrypt": "^6.0.0",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
