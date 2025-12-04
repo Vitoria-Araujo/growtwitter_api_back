@@ -4,29 +4,38 @@ import { CreateTweetDto } from "../dtos/create-tweet.dto";
 import { UpdateTweetDto } from "../dtos/update-tweet.dto";
 
 export class TweetRepository {
-  // =====================================================
-  // GET ALL TWEETS (WITH REPLIES RECURSIVE)
-  // =====================================================
   public async findAll(maxDepth: number = 50) {
     try {
       const includeRepliesRecursive = (currentDepth: number): any => {
         const baseInclude = {
           user: {
-            select: { id: true, name: true, username: true },
+            select: {
+              id: true,
+              name: true,
+              username: true,
+            },
           },
           _count: {
-            select: { likes: true, replies: true },
+            select: {
+              likes: true,
+              replies: true,
+            },
           },
           likes: {
             include: {
               user: {
-                select: { id: true, name: true },
+                select: {
+                  id: true,
+                  name: true,
+                },
               },
             },
           },
         };
 
-        if (currentDepth >= maxDepth) return baseInclude;
+        if (currentDepth >= maxDepth) {
+          return baseInclude;
+        }
 
         return {
           ...baseInclude,
@@ -47,9 +56,6 @@ export class TweetRepository {
     }
   }
 
-  // =====================================================
-  // FIND BY ID
-  // =====================================================
   public async findById(id: string) {
     try {
       return await prisma.tweet.findUnique({ where: { id } });
@@ -58,16 +64,14 @@ export class TweetRepository {
     }
   }
 
-  // =====================================================
-  // CREATE TWEET
-  // =====================================================
   public async createTweet(data: CreateTweetDto) {
     try {
       if (data.parentId) {
         const parent = await prisma.tweet.findUnique({
           where: { id: data.parentId },
         });
-        if (!parent) throw new Error("Tweet original não encontrado");
+
+        if (!parent) throw new Error("Original tweet not found");
       }
 
       return await prisma.tweet.create({
@@ -92,9 +96,6 @@ export class TweetRepository {
     }
   }
 
-  // =====================================================
-  // UPDATE TWEET
-  // =====================================================
   public async update(id: string, data: UpdateTweetDto) {
     try {
       return await prisma.tweet.update({
@@ -118,9 +119,6 @@ export class TweetRepository {
     }
   }
 
-  // =====================================================
-  // DELETE TWEET
-  // =====================================================
   public async delete(id: string) {
     try {
       return await prisma.tweet.delete({ where: { id } });
@@ -129,9 +127,6 @@ export class TweetRepository {
     }
   }
 
-  // =====================================================
-  // FEED (FOLLOWING + SELF)
-  // =====================================================
   public async findFeed(userId: string, maxDepth: number = 50) {
     try {
       const following = await prisma.follow.findMany({
@@ -139,11 +134,9 @@ export class TweetRepository {
         select: { followingId: true },
       });
 
-      // Tipo correto do item retornado
-      type FollowRecord = { followingId: string };
-
+      // CORREÇÃO: tipagem explícita
       const followingIds = following.map(
-        (follow: FollowRecord) => follow.followingId
+        (f: { followingId: string }) => f.followingId
       );
 
       const userIds = [userId, ...followingIds];
@@ -159,7 +152,10 @@ export class TweetRepository {
             },
           },
           _count: {
-            select: { likes: true, replies: true },
+            select: {
+              likes: true,
+              replies: true,
+            },
           },
           likes: {
             include: {
@@ -174,7 +170,9 @@ export class TweetRepository {
           },
         };
 
-        if (currentDepth >= maxDepth) return baseInclude;
+        if (currentDepth >= maxDepth) {
+          return baseInclude;
+        }
 
         return {
           ...baseInclude,

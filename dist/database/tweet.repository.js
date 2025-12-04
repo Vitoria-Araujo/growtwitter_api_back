@@ -4,29 +4,37 @@ exports.TweetRepository = void 0;
 const error_handler_1 = require("../config/error.handler");
 const prisma_config_1 = require("../config/prisma.config");
 class TweetRepository {
-    // =====================================================
-    // GET ALL TWEETS (WITH REPLIES RECURSIVE)
-    // =====================================================
     async findAll(maxDepth = 50) {
         try {
             const includeRepliesRecursive = (currentDepth) => {
                 const baseInclude = {
                     user: {
-                        select: { id: true, name: true, username: true },
+                        select: {
+                            id: true,
+                            name: true,
+                            username: true,
+                        },
                     },
                     _count: {
-                        select: { likes: true, replies: true },
+                        select: {
+                            likes: true,
+                            replies: true,
+                        },
                     },
                     likes: {
                         include: {
                             user: {
-                                select: { id: true, name: true },
+                                select: {
+                                    id: true,
+                                    name: true,
+                                },
                             },
                         },
                     },
                 };
-                if (currentDepth >= maxDepth)
+                if (currentDepth >= maxDepth) {
                     return baseInclude;
+                }
                 return {
                     ...baseInclude,
                     replies: {
@@ -45,9 +53,6 @@ class TweetRepository {
             return (0, error_handler_1.handleError)(error);
         }
     }
-    // =====================================================
-    // FIND BY ID
-    // =====================================================
     async findById(id) {
         try {
             return await prisma_config_1.prisma.tweet.findUnique({ where: { id } });
@@ -56,9 +61,6 @@ class TweetRepository {
             return (0, error_handler_1.handleError)(error);
         }
     }
-    // =====================================================
-    // CREATE TWEET
-    // =====================================================
     async createTweet(data) {
         try {
             if (data.parentId) {
@@ -66,7 +68,7 @@ class TweetRepository {
                     where: { id: data.parentId },
                 });
                 if (!parent)
-                    throw new Error("Tweet original não encontrado");
+                    throw new Error("Original tweet not found");
             }
             return await prisma_config_1.prisma.tweet.create({
                 data: {
@@ -90,9 +92,6 @@ class TweetRepository {
             return (0, error_handler_1.handleError)(error);
         }
     }
-    // =====================================================
-    // UPDATE TWEET
-    // =====================================================
     async update(id, data) {
         try {
             return await prisma_config_1.prisma.tweet.update({
@@ -116,9 +115,6 @@ class TweetRepository {
             return (0, error_handler_1.handleError)(error);
         }
     }
-    // =====================================================
-    // DELETE TWEET
-    // =====================================================
     async delete(id) {
         try {
             return await prisma_config_1.prisma.tweet.delete({ where: { id } });
@@ -127,16 +123,14 @@ class TweetRepository {
             return (0, error_handler_1.handleError)(error);
         }
     }
-    // =====================================================
-    // FEED (FOLLOWING + SELF)
-    // =====================================================
     async findFeed(userId, maxDepth = 50) {
         try {
             const following = await prisma_config_1.prisma.follow.findMany({
                 where: { followerId: userId },
                 select: { followingId: true },
             });
-            const followingIds = following.map((follow) => follow.followingId);
+            // CORREÇÃO: tipagem explícita
+            const followingIds = following.map((f) => f.followingId);
             const userIds = [userId, ...followingIds];
             const includeRepliesRecursive = (currentDepth) => {
                 const baseInclude = {
@@ -149,7 +143,10 @@ class TweetRepository {
                         },
                     },
                     _count: {
-                        select: { likes: true, replies: true },
+                        select: {
+                            likes: true,
+                            replies: true,
+                        },
                     },
                     likes: {
                         include: {
@@ -163,8 +160,9 @@ class TweetRepository {
                         },
                     },
                 };
-                if (currentDepth >= maxDepth)
+                if (currentDepth >= maxDepth) {
                     return baseInclude;
+                }
                 return {
                     ...baseInclude,
                     replies: {
