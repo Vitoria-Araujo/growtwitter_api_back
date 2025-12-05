@@ -1,89 +1,73 @@
-import { handleError } from "../config/error.handler";
 import { prisma } from "../config/prisma.config";
 import { CreateUserDto } from "../dtos/create-user.dto";
 import { UpdateUserDto } from "../dtos/update-user.dto";
 
 export class UserRepository {
-    // SELECT * FROM users
-    public async findAll() {
-        try {
-            const users = await prisma.user.findMany();
-            return users;
-        } catch (error: any) {
-            return handleError(error);
-        }
+  public async findAll() {
+    try {
+      return await prisma.user.findMany();
+    } catch (error: any) {
+      throw error;
     }
+  }
 
-    // SELECT * FROM users WHERE id = ?
-    public async findById(id: string) {
-        try {
-            const user = await prisma.user.findUnique({
-                where: { id },
-            });
-            return user;
-        } catch (error: any) {
-            return handleError(error);
-        }
+  public async findById(id: string) {
+    try {
+      return await prisma.user.findUnique({
+        where: { id },
+      });
+    } catch (error: any) {
+      throw error;
     }
+  }
 
-    // INSERT INTO users (...) VALUES (...)
-    public async create(data: CreateUserDto) {
-        try {
-            const newUser = await prisma.user.create({
-                data
-            });
-            return newUser;
-        } catch (error: any) {
-            return handleError(error);
-        }
+  public async create(data: CreateUserDto) {
+    try {
+      const newUser = await prisma.user.create({ data });
+      return newUser;
+    } catch (error: any) {
+      throw error; // ← ESSA ERA A ORIGEM DO ERRO 500
     }
+  }
 
-    // UPDATE users SET ... WHERE id = ?
-    public async update(id: string, data: UpdateUserDto) {
-        try {
-            const updatedUser = await prisma.user.update({
-                where: { id },
-                data,
-            });
-            return updatedUser;
-        } catch (error: any) {
-            return handleError(error);
-        }
+  public async update(id: string, data: UpdateUserDto) {
+    try {
+      return await prisma.user.update({
+        where: { id },
+        data,
+      });
+    } catch (error: any) {
+      throw error;
     }
+  }
 
-    // DELETE FROM users WHERE id = ?
-    public async delete(id: string) {
-        try {
-            const deletedUser = await prisma.user.delete({
-                where: { id },
-            });
-            return deletedUser;
-        } catch (error: any) {
-            return handleError(error);
-        }
+  public async delete(id: string) {
+    try {
+      return await prisma.user.delete({
+        where: { id },
+      });
+    } catch (error: any) {
+      throw error;
     }
+  }
 
-    // SELECT * FROM users WHERE email = ?
-    public async findByEmail(email: string) {
-        try {
-            const user = await prisma.user.findUnique({
-                where: { email },
-            });
-            return user;
-        } catch (error: any) {
-            return handleError(error);
-        }
+  public async findByEmail(email: string) {
+    try {
+      return await prisma.user.findUnique({
+        where: { email },
+      });
+    } catch (error: any) {
+      throw error;
     }
+  }
 
-    // SELECT * FROM users WHERE username = ?
-    public async findByUsername(username: string) {
-        try {
-            const user = await prisma.user.findUnique({
-                where: { username },
-            });
-            return user;
-        } catch (error: any) {
-            return handleError(error);
-        }
+  public async findByUsername(username: string) {
+    try {
+      return await prisma.user.findUnique({
+        where: { username },
+      });
+    } catch (error: any) {
+      throw error;
     }
+  }
 }
