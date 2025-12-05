@@ -7,82 +7,67 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-/*
-Relationships:
-
-User <-> Tweet
-1 User can post N Tweets (1:N)
-1 Tweet belongs to 1 User (1:1)
-
-User <-> Like
-1 User can like N Tweets (1:N)
-1 Like belongs to 1 User (1:1)
-
-Tweet <-> Like
-1 Tweet can have N Likes (1:N)
-1 Like belongs to 1 Tweet (1:1)
-*/
-
 model User {
-  id String @id @default(uuid())
-  name String @db.VarChar(120)
-  username String @unique @db.VarChar(60)
-  email String @unique @db.VarChar(60)
-  password String
-  profileImage String? @db.VarChar(255)
+  id           String   @id @default(uuid())
+  name         String   @db.VarChar(120)
+  username     String   @unique @db.VarChar(60)
+  email        String   @unique @db.VarChar(60)
+  password     String
+  profileImage String?  @db.VarChar(255)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
-  tweets Tweet[]
-  
-  likes Like[]
-  
-  followers Follow[] @relation("Follower")
-  following Follow[] @relation("Following")
+  tweets     Tweet[]
+  likes      Like[]
+  followers  Follow[] @relation("Follower")
+  following  Follow[] @relation("Following")
 
   @@map("users")
 }
 
 model Tweet {
-  id String @id @default(uuid())
-  content String @db.VarChar(300)
+  id        String   @id @default(uuid())
+  content   String   @db.VarChar(300)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   userId String
-  user User @relation(fields: [userId], references: [id])
+  user   User @relation(fields: [userId], references: [id])
 
-  likes Like[]
-  replies Tweet[] @relation("Replies")
+  // FOREIGN KEY FIRST
+  parentId String?
+  parent   Tweet?  @relation("Replies", fields: [parentId], references: [id])
 
-  parentId String? // Father tweet ID for replies
-  parent Tweet? @relation("Replies", fields: [parentId], references: [id])
+  // THEN THE CHILDREN SIDE
+  replies  Tweet[] @relation("Replies")
+
+  likes    Like[]
 
   @@map("tweets")
 }
 
 model Like {
-  id String @id @default(uuid())
-  userId String
+  id      String @id @default(uuid())
+  userId  String
   tweetId String
   
-  user User @relation(fields: [userId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
   tweet Tweet @relation(fields: [tweetId], references: [id])
 
-  @@unique([userId, tweetId]) // Ensure a user can like a tweet only once
+  @@unique([userId, tweetId])
   @@map("likes")
 }
 
 model Follow {
-  id String @id @default(uuid())
-  followerId String
+  id          String @id @default(uuid())
+  followerId  String
   followingId String
 
-  follower User @relation("Follower", fields: [followerId], references: [id])
+  follower  User @relation("Follower", fields: [followerId], references: [id])
   following User @relation("Following", fields: [followingId], references: [id])
 
-  @@unique([followerId, followingId]) // Ensure a user can follow another user only once
+  @@unique([followerId, followingId])
   @@map("follows")
 }

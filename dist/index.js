@@ -51,7 +51,7 @@ const userRepository = new user_repository_1.UserRepository();
 const tweetRepository = new tweet_repository_1.TweetRepository();
 const likeRepository = new like_repository_1.LikeRepository();
 const followRepository = new follow_repository_1.FollowRepository();
-// USERS ---------------------------------------------------------------------
+/* USERS -------------------------------------------------------------- */
 // 1 - Get all users
 app.get("/users", async (req, res) => {
     try {
@@ -101,9 +101,7 @@ app.get("/user/:id", middlewares_1.authMiddleware, middlewares_1.validateIdParam
         });
     }
     catch (error) {
-        res
-            .status(500)
-            .json({
+        res.status(500).json({
             ok: false,
             message: "Error fetching user",
             error: error.message,
@@ -119,6 +117,12 @@ app.post("/user", middlewares_1.validateUserCreation, async (req, res) => {
             ...userData,
             password: hashedPassword,
         });
+        // Prevent TS error and ensure newUser exists
+        if (!newUser) {
+            return res
+                .status(500)
+                .send({ ok: false, message: "Error creating user (null returned)" });
+        }
         const userWithoutPassword = {
             id: newUser.id,
             name: newUser.name,
@@ -135,9 +139,7 @@ app.post("/user", middlewares_1.validateUserCreation, async (req, res) => {
         });
     }
     catch (error) {
-        res
-            .status(500)
-            .send({
+        res.status(500).send({
             ok: false,
             message: "Error creating user",
             error: error.message,
@@ -152,18 +154,14 @@ app.put("/user/:id", middlewares_1.authMiddleware, middlewares_1.validateIdParam
         if (!updatedUser) {
             return res.status(404).send({ ok: false, message: "User not found" });
         }
-        res
-            .status(200)
-            .send({
+        res.status(200).send({
             ok: true,
             message: "User updated successfully:",
             data: updatedUser,
         });
     }
     catch (error) {
-        res
-            .status(500)
-            .send({
+        res.status(500).send({
             ok: false,
             message: "Error updating user",
             error: error.message,
@@ -178,21 +176,21 @@ app.delete("/user/:id", middlewares_1.authMiddleware, middlewares_1.validateIdPa
         if (!deletedUser) {
             return res.status(404).send({ ok: false, message: "User not found" });
         }
-        res
-            .status(200)
-            .send({ ok: true, message: "User deleted", data: deletedUser });
+        res.status(200).send({
+            ok: true,
+            message: "User deleted",
+            data: deletedUser,
+        });
     }
     catch (error) {
-        res
-            .status(500)
-            .send({
+        res.status(500).send({
             ok: false,
             message: "Error deleting user",
             error: error.message,
         });
     }
 });
-// LOGIN ---------------------------------------------------------------------
+/* LOGIN -------------------------------------------------------------- */
 app.post("/login", middlewares_1.validateUserLogin, async (req, res) => {
     try {
         const { login, password } = req.body;
@@ -224,21 +222,21 @@ app.post("/login", middlewares_1.validateUserLogin, async (req, res) => {
         });
     }
     catch (error) {
-        res
-            .status(500)
-            .send({ ok: false, message: "Error logging in", error: error.message });
+        res.status(500).send({
+            ok: false,
+            message: "Error logging in",
+            error: error.message,
+        });
     }
 });
-// TWEETS ---------------------------------------------------------------------
+/* TWEETS -------------------------------------------------------------- */
 app.get("/tweets", async (req, res) => {
     try {
         const tweets = await tweetRepository.findAll();
         res.status(200).send({ ok: true, data: tweets });
     }
     catch (error) {
-        res
-            .status(500)
-            .send({
+        res.status(500).send({
             ok: false,
             message: "Error fetching tweets",
             error: error.message,
@@ -253,16 +251,14 @@ app.post("/tweet", middlewares_1.authMiddleware, middlewares_1.validateTweetCrea
             .send({ ok: true, message: "Tweet created", data: newTweet });
     }
     catch (error) {
-        res
-            .status(500)
-            .send({
+        res.status(500).send({
             ok: false,
             message: "Error creating tweet",
             error: error.message,
         });
     }
 });
-// LIKES ---------------------------------------------------------------------
+/* LIKES -------------------------------------------------------------- */
 app.post("/like/:userId/:tweetId", middlewares_1.authMiddleware, middlewares_1.validateLike, (0, middlewares_1.validateOwnership)("like"), async (req, res) => {
     try {
         const { userId, tweetId } = req.params;
@@ -273,9 +269,7 @@ app.post("/like/:userId/:tweetId", middlewares_1.authMiddleware, middlewares_1.v
         res.status(200).send({ ok: true, message: "Tweet liked", data: newLike });
     }
     catch (error) {
-        res
-            .status(500)
-            .send({
+        res.status(500).send({
             ok: false,
             message: "Error liking tweet",
             error: error.message,
@@ -286,30 +280,28 @@ app.delete("/like/:id", middlewares_1.authMiddleware, middlewares_1.validateIdPa
     try {
         const { id } = req.params;
         const deletedLike = await likeRepository.unlikeTweet(id);
-        res
-            .status(200)
-            .send({ ok: true, message: "Like removed", data: deletedLike });
+        res.status(200).send({
+            ok: true,
+            message: "Like removed",
+            data: deletedLike,
+        });
     }
     catch (error) {
-        res
-            .status(500)
-            .send({
+        res.status(500).send({
             ok: false,
             message: "Error unliking tweet",
             error: error.message,
         });
     }
 });
-// FOLLOWS ---------------------------------------------------------------------
+/* FOLLOWS -------------------------------------------------------------- */
 app.get("/follows", async (req, res) => {
     try {
         const follows = await followRepository.findAll();
         res.status(200).send({ ok: true, data: follows });
     }
     catch (error) {
-        res
-            .status(500)
-            .send({
+        res.status(500).send({
             ok: false,
             message: "Error fetching follows",
             error: error.message,
@@ -327,16 +319,14 @@ app.post("/follow", middlewares_1.authMiddleware, middlewares_1.validateFollow, 
         res.status(200).send({ ok: true, message: "Followed", data: newFollow });
     }
     catch (error) {
-        res
-            .status(500)
-            .send({
+        res.status(500).send({
             ok: false,
             message: "Error following user",
             error: error.message,
         });
     }
 });
-// FEED ---------------------------------------------------------------------
+/* FEED -------------------------------------------------------------- */
 app.get("/feed", middlewares_1.authMiddleware, async (req, res) => {
     try {
         const authenticatedUser = req.user;
@@ -344,16 +334,14 @@ app.get("/feed", middlewares_1.authMiddleware, async (req, res) => {
         res.status(200).send({ ok: true, data: feed });
     }
     catch (error) {
-        res
-            .status(500)
-            .send({
+        res.status(500).send({
             ok: false,
             message: "Error fetching feed",
             error: error.message,
         });
     }
 });
-// SERVER ---------------------------------------------------------------------
+/* SERVER -------------------------------------------------------------- */
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

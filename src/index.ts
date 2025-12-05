@@ -7,9 +7,9 @@ import * as dotenv from "dotenv";
 import { prisma } from "./config/prisma.config";
 import * as bcrypt from "bcrypt";
 import { TweetRepository } from "./database/tweet.repository";
-import { handleError } from "./config/error.handler";
 import { LikeRepository } from "./database/like.repository";
 import { FollowRepository } from "./database/follow.repository";
+
 import {
   authMiddleware,
   validateUserCreation,
@@ -32,7 +32,7 @@ const tweetRepository = new TweetRepository();
 const likeRepository = new LikeRepository();
 const followRepository = new FollowRepository();
 
-// USERS ---------------------------------------------------------------------
+/* USERS -------------------------------------------------------------- */
 
 // 1 - Get all users
 app.get("/users", async (req: Request, res: Response) => {
@@ -91,13 +91,11 @@ app.get(
         data: { ...user, followers, following },
       });
     } catch (error: any) {
-      res
-        .status(500)
-        .json({
-          ok: false,
-          message: "Error fetching user",
-          error: error.message,
-        });
+      res.status(500).json({
+        ok: false,
+        message: "Error fetching user",
+        error: error.message,
+      });
     }
   }
 );
@@ -112,6 +110,13 @@ app.post("/user", validateUserCreation, async (req: Request, res: Response) => {
       ...userData,
       password: hashedPassword,
     });
+
+    // Prevent TS error and ensure newUser exists
+    if (!newUser) {
+      return res
+        .status(500)
+        .send({ ok: false, message: "Error creating user (null returned)" });
+    }
 
     const userWithoutPassword = {
       id: newUser.id,
@@ -129,13 +134,11 @@ app.post("/user", validateUserCreation, async (req: Request, res: Response) => {
       data: userWithoutPassword,
     });
   } catch (error: any) {
-    res
-      .status(500)
-      .send({
-        ok: false,
-        message: "Error creating user",
-        error: error.message,
-      });
+    res.status(500).send({
+      ok: false,
+      message: "Error creating user",
+      error: error.message,
+    });
   }
 });
 
@@ -155,21 +158,17 @@ app.put(
         return res.status(404).send({ ok: false, message: "User not found" });
       }
 
-      res
-        .status(200)
-        .send({
-          ok: true,
-          message: "User updated successfully:",
-          data: updatedUser,
-        });
+      res.status(200).send({
+        ok: true,
+        message: "User updated successfully:",
+        data: updatedUser,
+      });
     } catch (error: any) {
-      res
-        .status(500)
-        .send({
-          ok: false,
-          message: "Error updating user",
-          error: error.message,
-        });
+      res.status(500).send({
+        ok: false,
+        message: "Error updating user",
+        error: error.message,
+      });
     }
   }
 );
@@ -190,22 +189,22 @@ app.delete(
         return res.status(404).send({ ok: false, message: "User not found" });
       }
 
-      res
-        .status(200)
-        .send({ ok: true, message: "User deleted", data: deletedUser });
+      res.status(200).send({
+        ok: true,
+        message: "User deleted",
+        data: deletedUser,
+      });
     } catch (error: any) {
-      res
-        .status(500)
-        .send({
-          ok: false,
-          message: "Error deleting user",
-          error: error.message,
-        });
+      res.status(500).send({
+        ok: false,
+        message: "Error deleting user",
+        error: error.message,
+      });
     }
   }
 );
 
-// LOGIN ---------------------------------------------------------------------
+/* LOGIN -------------------------------------------------------------- */
 
 app.post("/login", validateUserLogin, async (req: Request, res: Response) => {
   try {
@@ -241,26 +240,26 @@ app.post("/login", validateUserLogin, async (req: Request, res: Response) => {
       },
     });
   } catch (error: any) {
-    res
-      .status(500)
-      .send({ ok: false, message: "Error logging in", error: error.message });
+    res.status(500).send({
+      ok: false,
+      message: "Error logging in",
+      error: error.message,
+    });
   }
 });
 
-// TWEETS ---------------------------------------------------------------------
+/* TWEETS -------------------------------------------------------------- */
 
 app.get("/tweets", async (req: Request, res: Response) => {
   try {
     const tweets = await tweetRepository.findAll();
     res.status(200).send({ ok: true, data: tweets });
   } catch (error: any) {
-    res
-      .status(500)
-      .send({
-        ok: false,
-        message: "Error fetching tweets",
-        error: error.message,
-      });
+    res.status(500).send({
+      ok: false,
+      message: "Error fetching tweets",
+      error: error.message,
+    });
   }
 });
 
@@ -276,18 +275,16 @@ app.post(
         .status(201)
         .send({ ok: true, message: "Tweet created", data: newTweet });
     } catch (error: any) {
-      res
-        .status(500)
-        .send({
-          ok: false,
-          message: "Error creating tweet",
-          error: error.message,
-        });
+      res.status(500).send({
+        ok: false,
+        message: "Error creating tweet",
+        error: error.message,
+      });
     }
   }
 );
 
-// LIKES ---------------------------------------------------------------------
+/* LIKES -------------------------------------------------------------- */
 
 app.post(
   "/like/:userId/:tweetId",
@@ -306,13 +303,11 @@ app.post(
 
       res.status(200).send({ ok: true, message: "Tweet liked", data: newLike });
     } catch (error: any) {
-      res
-        .status(500)
-        .send({
-          ok: false,
-          message: "Error liking tweet",
-          error: error.message,
-        });
+      res.status(500).send({
+        ok: false,
+        message: "Error liking tweet",
+        error: error.message,
+      });
     }
   }
 );
@@ -328,35 +323,33 @@ app.delete(
 
       const deletedLike = await likeRepository.unlikeTweet(id);
 
-      res
-        .status(200)
-        .send({ ok: true, message: "Like removed", data: deletedLike });
+      res.status(200).send({
+        ok: true,
+        message: "Like removed",
+        data: deletedLike,
+      });
     } catch (error: any) {
-      res
-        .status(500)
-        .send({
-          ok: false,
-          message: "Error unliking tweet",
-          error: error.message,
-        });
+      res.status(500).send({
+        ok: false,
+        message: "Error unliking tweet",
+        error: error.message,
+      });
     }
   }
 );
 
-// FOLLOWS ---------------------------------------------------------------------
+/* FOLLOWS -------------------------------------------------------------- */
 
 app.get("/follows", async (req: Request, res: Response) => {
   try {
     const follows = await followRepository.findAll();
     res.status(200).send({ ok: true, data: follows });
   } catch (error: any) {
-    res
-      .status(500)
-      .send({
-        ok: false,
-        message: "Error fetching follows",
-        error: error.message,
-      });
+    res.status(500).send({
+      ok: false,
+      message: "Error fetching follows",
+      error: error.message,
+    });
   }
 });
 
@@ -377,18 +370,16 @@ app.post(
 
       res.status(200).send({ ok: true, message: "Followed", data: newFollow });
     } catch (error: any) {
-      res
-        .status(500)
-        .send({
-          ok: false,
-          message: "Error following user",
-          error: error.message,
-        });
+      res.status(500).send({
+        ok: false,
+        message: "Error following user",
+        error: error.message,
+      });
     }
   }
 );
 
-// FEED ---------------------------------------------------------------------
+/* FEED -------------------------------------------------------------- */
 
 app.get("/feed", authMiddleware, async (req: Request, res: Response) => {
   try {
@@ -397,17 +388,15 @@ app.get("/feed", authMiddleware, async (req: Request, res: Response) => {
 
     res.status(200).send({ ok: true, data: feed });
   } catch (error: any) {
-    res
-      .status(500)
-      .send({
-        ok: false,
-        message: "Error fetching feed",
-        error: error.message,
-      });
+    res.status(500).send({
+      ok: false,
+      message: "Error fetching feed",
+      error: error.message,
+    });
   }
 });
 
-// SERVER ---------------------------------------------------------------------
+/* SERVER -------------------------------------------------------------- */
 
 const PORT = process.env.PORT || 3000;
 
