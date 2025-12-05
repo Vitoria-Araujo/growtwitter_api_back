@@ -1,11 +1,10 @@
 {
   "name": "growtwitter_api",
   "version": "1.0.0",
-  "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/index.js",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate && npm run build",
+    "start": "node dist/index.js"
   },
   "dependencies": {
     "@prisma/client": "^5.10.2",
@@ -16,12 +15,12 @@
     "prisma": "^5.10.2"
   },
   "devDependencies": {
-    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/node": "^24.9.1",
+    "@types/cors": "^2.8.19",
     "@types/bcrypt": "^6.0.0",
-    "nodemon": "^3.1.10",
     "ts-node-dev": "^2.0.0",
+    "nodemon": "^3.1.10",
     "typescript": "^5.9.3"
   }
 }
